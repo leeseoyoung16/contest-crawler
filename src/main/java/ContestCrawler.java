@@ -44,19 +44,41 @@ public class ContestCrawler {
                     // 사이드바 링크 제거 (숫자. 로 시작)
                     if (title.matches("^\\d+\\..*")) continue;
                     // 카테고리 prefix 제거
-                    title = title.replaceAll("^(학문|미술|사진|문학|네이밍|기획|아이디어|캐릭터|공연|건축|창업|기타)[^가-힣]*", "").trim();
+                    title = title.replaceAll("^(학문|과학|미술|사진|문학|네이밍|기획|아이디어|캐릭터|공연|건축|창업|기타|문예)[^가-힣A-Z]*", "").trim();
                     if (title.length() < 5) continue;
 
                     String href = link.attr("href");
                     String fullLink = href.startsWith("http") ? href : "https://www.contestkorea.com/sub/" + href;
 
                     if (seenLinks.contains(fullLink)) continue;
-                    seenLinks.add(fullLink);
 
                     // 제목 중복 제거 (숫자. prefix 제거 후 비교)
                     String cleanTitle = title.replaceAll("^\\d+\\.\\s*", "").trim();
                     if (seenTitles.contains(cleanTitle)) continue;
                     seenTitles.add(cleanTitle);
+                    seenLinks.add(fullLink);
+
+                    // 개발 관련 키워드 필터
+                    String[] devKeywords = {
+                            "개발", "SW", "소프트웨어", "앱", "해커톤", "hackathon",
+                            "프로그래밍", "코딩", "인공지능", "AI", "빅데이터",
+                            "클라우드", "웹", "모바일", "게임", "보안", "사이버",
+                            "디지털", "ICT", "정보통신", "알고리즘", "데이터사이언스",
+                            "아이디어톤"
+                    };
+
+                    boolean isDevRelated = false;
+                    String titleLower = title.toLowerCase();
+                    for (String kw : devKeywords) {
+                        if (titleLower.contains(kw.toLowerCase())) {
+                            isDevRelated = true;
+                            break;
+                        }
+                    }
+                    if (!isDevRelated) {
+                        System.out.println("스킵(비개발): " + title);
+                        continue;
+                    }
 
                     // 상세 페이지에서 마감일, 주최, 설명 가져오기
                     String host = "", deadline = "", description = "";
