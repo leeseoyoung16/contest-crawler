@@ -24,6 +24,7 @@ public class ContestCrawler {
         System.out.println("공모전 수집 시작");
         List<Contest> contests = new ArrayList<>();
         Set<String> seenLinks = new HashSet<>();
+        Set<String> seenTitles = new HashSet<>();
 
         // IT/정보통신 카테고리 URL로 처음부터 필터링
         for (int page = 1; page <= 5; page++) {
@@ -51,6 +52,11 @@ public class ContestCrawler {
 
                     if (seenLinks.contains(fullLink)) continue;
                     seenLinks.add(fullLink);
+
+                    // 제목 중복 제거 (숫자. prefix 제거 후 비교)
+                    String cleanTitle = title.replaceAll("^\\d+\\.\\s*", "").trim();
+                    if (seenTitles.contains(cleanTitle)) continue;
+                    seenTitles.add(cleanTitle);
 
                     // 상세 페이지에서 마감일, 주최, 설명 가져오기
                     String host = "", deadline = "", description = "";
@@ -84,6 +90,11 @@ public class ContestCrawler {
                         System.err.println("상세 실패: " + title);
                     }
 
+                    // 상세 정보 없으면 건너뜀
+                    if (host.isEmpty() && deadline.isEmpty()) {
+                        System.out.println("스킵(상세없음): " + title);
+                        continue;
+                    }
                     contests.add(new Contest(title, host, deadline, description, fullLink));
                     System.out.println("수집: " + title);
                 }
