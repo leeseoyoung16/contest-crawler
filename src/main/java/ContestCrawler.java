@@ -60,7 +60,7 @@ public class ContestCrawler {
                         String href     = item.select("a.txt").attr("href");
                         String link     = "https://www.contestkorea.com/sub/" + href;
 
-                        if (!title.isEmpty() && isDevContest(title, category)) {
+                        if (!title.isEmpty()) {
                             contests.add(new Contest(title, category, host, deadline, link));
                             System.out.println("수집: " + title);
                         }
