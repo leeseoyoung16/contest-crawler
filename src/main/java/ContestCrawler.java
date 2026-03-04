@@ -158,7 +158,7 @@ public class ContestCrawler {
         Set<String> seenLinks  = new HashSet<>();
         Set<String> seenTitles = new HashSet<>();
 
-        for (int page = 1; page <= 5; page++) {
+        for (int page = 1; page <= 10; page++) {
             try {
                 String url = "https://www.contestkorea.com/sub/list.php"
                         + "?display=1&int_gbn=1&Txt_bkk=0&Txt_stt=1&Txt_bcode=030310001&page=" + page;
@@ -281,6 +281,7 @@ public class ContestCrawler {
         sb.append(".stats{background:white;border-radius:14px;padding:18px 24px;margin-bottom:28px;");
         sb.append("box-shadow:0 2px 10px rgba(0,0,0,.07);font-size:1rem;color:#4a5568}");
         sb.append(".count{color:#667eea;font-weight:700;font-size:1.3rem}");
+        sb.append(".page-info{text-align:center;color:#888;font-size:.85rem;margin-bottom:12px}");
         sb.append(".grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:22px}");
         sb.append(".card{background:white;border-radius:14px;padding:24px;box-shadow:0 2px 10px rgba(0,0,0,.07);");
         sb.append("border-top:4px solid #667eea;display:flex;flex-direction:column;gap:10px;transition:transform .2s,box-shadow .2s}");
@@ -293,21 +294,34 @@ public class ContestCrawler {
         sb.append(".meta-row{display:flex;align-items:flex-start;gap:8px;font-size:.83rem;color:#718096}");
         sb.append(".meta-label{font-weight:700;color:#4a5568;min-width:36px;flex-shrink:0}");
         sb.append(".deadline-badge{background:#fff5f5;color:#e53e3e;padding:2px 8px;border-radius:6px;font-weight:600}");
-        sb.append(".collected{font-size:.75rem;color:#a0aec0;margin-top:4px}");  // 수집일 표시
+        sb.append(".collected{font-size:.75rem;color:#a0aec0;margin-top:4px}");
         sb.append(".btn{display:block;margin-top:10px;padding:9px;background:#667eea;color:white;");
         sb.append("border-radius:8px;font-size:.88rem;text-decoration:none;font-weight:600;text-align:center}");
         sb.append(".btn:hover{background:#5a67d8}");
+        sb.append(".pagination{display:flex;justify-content:center;align-items:center;gap:6px;margin:36px 0 24px;flex-wrap:wrap}");
+        sb.append(".pagination button{min-width:38px;height:38px;border:1px solid #ddd;border-radius:8px;");
+        sb.append("background:white;color:#333;font-size:.9rem;cursor:pointer;transition:all .2s}");
+        sb.append(".pagination button:hover:not(:disabled){background:#667eea;color:white;border-color:#667eea}");
+        sb.append(".pagination button.active{background:#667eea;color:white;border-color:#667eea;font-weight:700}");
+        sb.append(".pagination button:disabled{opacity:.35;cursor:not-allowed}");
         sb.append("footer{text-align:center;padding:48px 20px;color:#a0aec0;font-size:.85rem}");
         sb.append("footer a{color:#667eea;text-decoration:none}");
         sb.append("</style></head><body>");
+
+        // ── 헤더
         sb.append("<header><h1>개발자 공모전 정보</h1>");
         sb.append("<p>IT/SW/AI 관련 공모전을 매일 자동 수집합니다</p>");
-        sb.append("<div class='badge'>매일 오전 9시 자동 업데이트</div></header>");
+        sb.append("<div class='badge'>매일 오전 10시 자동 업데이트</div></header>");
+
         sb.append("<div class='container'>");
         sb.append("<div class='stats'>📅 ").append(today)
                 .append(" 기준 &nbsp;|&nbsp; 총 <span class='count'>").append(contests.size()).append("</span>개 공모전</div>");
-        sb.append("<div class='grid'>");
 
+        // ✅ pageInfo — 그리드 위
+        sb.append("<p class='page-info' id='pageInfo'></p>");
+
+        // ── 카드 그리드
+        sb.append("<div class='grid'>");
         for (Contest c : contests) {
             sb.append("<div class='card'>");
             sb.append("<div class='card-title'><a href='").append(esc(c.link))
@@ -322,16 +336,59 @@ public class ContestCrawler {
                 sb.append("<div class='meta-row'><span class='meta-label'>마감</span>")
                         .append("<span class='deadline-badge'>").append(esc(c.deadline)).append("</span></div>");
             sb.append("</div>");
-            // ✅ 수집일 표시
             if (c.collectedDate != null)
                 sb.append("<div class='collected'>🗓 수집일: ").append(esc(c.collectedDate)).append("</div>");
             sb.append("<a class='btn' href='").append(esc(c.link)).append("' target='_blank'>자세히 보기</a>");
             sb.append("</div>");
         }
+        sb.append("</div>"); // .grid 닫기
 
-        sb.append("</div></div>");
+        // ✅ pagination — 그리드 아래
+        sb.append("<div class='pagination' id='pagination'></div>");
+
+        sb.append("</div>"); // .container 닫기
+
         sb.append("<footer><p>데이터 출처: <a href='https://www.contestkorea.com' target='_blank'>공모전코리아</a>");
-        sb.append(" | 매일 오전 9시 자동 업데이트</p></footer></body></html>");
+        sb.append(" | 매일 오전 10시 자동 업데이트</p></footer>");
+
+        // ✅ </body> 전에 <script>
+        sb.append("<script>");
+        sb.append("const PER_PAGE=12;");
+        sb.append("let currentPage=1;");
+        sb.append("const cards=Array.from(document.querySelectorAll('.card'));");
+        sb.append("const total=cards.length;");
+        sb.append("const totalPages=Math.ceil(total/PER_PAGE);");
+
+        sb.append("function render(){");
+        sb.append("  cards.forEach((c,i)=>{");
+        sb.append("    const start=(currentPage-1)*PER_PAGE;");
+        sb.append("    c.style.display=(i>=start&&i<start+PER_PAGE)?'flex':'none';");
+        sb.append("  });");
+        sb.append("  document.getElementById('pageInfo').textContent=");
+        sb.append("    '전체 '+total+'개 공모전 · '+currentPage+' / '+totalPages+' 페이지';");
+        sb.append("  renderPagination();");
+        sb.append("  window.scrollTo({top:0,behavior:'smooth'});");
+        sb.append("}");
+
+        sb.append("function renderPagination(){");
+        sb.append("  const pg=document.getElementById('pagination');");
+        sb.append("  if(totalPages<=1){pg.innerHTML='';return;}");
+        sb.append("  let html='';");
+        sb.append("  html+=`<button onclick='goPage(${currentPage-1})' ${currentPage===1?'disabled':''}>◀</button>`;");
+        sb.append("  let s=Math.max(1,currentPage-2),e=Math.min(totalPages,s+4);");
+        sb.append("  if(e-s<4)s=Math.max(1,e-4);");
+        sb.append("  if(s>1)html+='<button onclick=\"goPage(1)\">1</button>'+(s>2?'<button disabled>…</button>':'');");
+        sb.append("  for(let i=s;i<=e;i++)html+=`<button onclick='goPage(${i})' class='${i===currentPage?\"active\":\"\"}'>${i}</button>`;");
+        sb.append("  if(e<totalPages)html+=(e<totalPages-1?'<button disabled>…</button>':'')+`<button onclick='goPage(${totalPages})'>${totalPages}</button>`;");
+        sb.append("  html+=`<button onclick='goPage(${currentPage+1})' ${currentPage===totalPages?'disabled':''}>▶</button>`;");
+        sb.append("  pg.innerHTML=html;");
+        sb.append("}");
+
+        sb.append("function goPage(n){if(n<1||n>totalPages)return;currentPage=n;render();}");
+        sb.append("render();");
+        sb.append("</script>");
+
+        sb.append("</body></html>");
 
         try {
             Files.createDirectories(Paths.get("output"));
@@ -341,6 +398,7 @@ public class ContestCrawler {
             System.err.println("저장 실패: " + e.getMessage());
         }
     }
+
 
     static String esc(String t) {
         if (t == null) return "";
