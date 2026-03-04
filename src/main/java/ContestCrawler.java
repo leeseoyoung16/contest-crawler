@@ -26,7 +26,6 @@ public class ContestCrawler {
         Set<String> seenLinks = new HashSet<>();
         Set<String> seenTitles = new HashSet<>();
 
-        // IT/정보통신 카테고리 URL로 처음부터 필터링
         for (int page = 1; page <= 5; page++) {
             try {
                 String url = "https://www.contestkorea.com/sub/list.php"
@@ -39,36 +38,46 @@ public class ContestCrawler {
 
                 Elements links = doc.select("a[href*=str_no]");
                 for (Element link : links) {
-                    String title = link.text().trim();
+                    String rawTitle = link.text().trim();
 
-                    // 사이드바 링크 제거 (숫자. 로 시작)
-                    if (title.matches("^\\d+\\..*")) continue;
-                    // 카테고리 prefix 제거
-                    title = title.replaceAll("^(학문|과학|미술|사진|문학|네이밍|기획|아이디어|캐릭터|공연|건축|창업|기타|문예)[^가-힣A-Z]*", "").trim();
-                    if (title.length() < 5) continue;
+                    // ✅ 사이드바 링크 제거 (숫자. 로 시작)
+                    if (rawTitle.matches("^\\d+\\..*")) continue;
+
+                    // ✅ 카테고리 prefix 제거 (•IT 같은 복합 카테고리까지 처리)
+                    String title = rawTitle.replaceAll(
+                            "^(학문|과학|미술|사진|문학|네이밍|기획|아이디어|캐릭터|공연|건축|창업|기타|문예)" +
+                                    "([•·/\\s]*(IT|SW|과학|미술|디자인|웹툰|음악|체육|기타))*[^가-힣0-9a-zA-Z]*",
+                            ""
+                    ).trim();
+
+                    // ✅ 숫자. prefix 제거 후 중복 비교 & 키워드 필터용으로 통일
+                    String cleanTitle = title.replaceAll("^\\d+\\.\\s*", "").trim();
+
+                    if (cleanTitle.length() < 5) continue;
 
                     String href = link.attr("href");
-                    String fullLink = href.startsWith("http") ? href : "https://www.contestkorea.com/sub/" + href;
+                    String fullLink = href.startsWith("http") ? href
+                            : "https://www.contestkorea.com/sub/" + href;
 
                     if (seenLinks.contains(fullLink)) continue;
-
-                    // 제목 중복 제거 (숫자. prefix 제거 후 비교)
-                    String cleanTitle = title.replaceAll("^\\d+\\.\\s*", "").trim();
                     if (seenTitles.contains(cleanTitle)) continue;
                     seenTitles.add(cleanTitle);
                     seenLinks.add(fullLink);
 
-                    // 개발 관련 키워드 필터
+                    // ✅ 키워드 필터 — cleanTitle 기준, 키워드 보강
                     String[] devKeywords = {
                             "개발", "SW", "소프트웨어", "앱", "해커톤", "hackathon",
                             "프로그래밍", "코딩", "인공지능", "AI", "빅데이터",
                             "클라우드", "웹", "모바일", "게임", "보안", "사이버",
                             "디지털", "ICT", "정보통신", "알고리즘", "데이터사이언스",
-                            "아이디어톤"
+                            "아이디어톤", "AX", "DX", "tech", "테크",
+                            "IT경시", "IT 경시", "전산", "시스템", "플랫폼",
+                            "자동화", "로봇"
                     };
 
+                    // ✅ cleanTitle 기준으로 소문자 변환 후 필터 (변수 1개로 통일)
+                    String titleLower = cleanTitle.toLowerCase();
                     boolean isDevRelated = false;
-                    String titleLower = title.toLowerCase();
                     for (String kw : devKeywords) {
                         if (titleLower.contains(kw.toLowerCase())) {
                             isDevRelated = true;
@@ -76,7 +85,7 @@ public class ContestCrawler {
                         }
                     }
                     if (!isDevRelated) {
-                        System.out.println("스킵(비개발): " + title);
+                        System.out.println("스킵(비개발): " + cleanTitle);
                         continue;
                     }
 
@@ -109,16 +118,17 @@ public class ContestCrawler {
                         }
                         Thread.sleep(400);
                     } catch (Exception e) {
-                        System.err.println("상세 실패: " + title);
+                        System.err.println("상세 실패: " + cleanTitle);
                     }
 
-                    // 상세 정보 없으면 건너뜀
                     if (host.isEmpty() && deadline.isEmpty()) {
-                        System.out.println("스킵(상세없음): " + title);
+                        System.out.println("스킵(상세없음): " + cleanTitle);
                         continue;
                     }
-                    contests.add(new Contest(title, host, deadline, description, fullLink));
-                    System.out.println("수집: " + title);
+
+                    // ✅ 저장 시 cleanTitle 사용 (접두어 제거된 깔끔한 제목)
+                    contests.add(new Contest(cleanTitle, host, deadline, description, fullLink));
+                    System.out.println("수집: " + cleanTitle);
                 }
                 Thread.sleep(1000);
             } catch (Exception e) {
