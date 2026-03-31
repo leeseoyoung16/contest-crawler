@@ -609,6 +609,7 @@ public class ContestCrawler {
           -webkit-mask-composite: destination-out;
           mask-composite: exclude;
           opacity: 0;
+          pointer-events: none;
           transition: opacity .3s;
           animation: borderBeam 3s linear infinite;
         }
