@@ -238,214 +238,790 @@ public class ContestCrawler {
     }
 
     static void generateHTML(List<Contest> contests) {
-        String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy년 MM월 dd일"));
-        long devCount = contests.stream().filter(c -> c.isDev).count(); // ✅ 개발 공모전 수
+        // ── 1. contests.json 은 saveJSON()에서 이미 저장됨
+        // ── 2. index.html 뼈대 생성
+        String htmlPath = "output/index.html";
+        String html = """
+        <!DOCTYPE html>
+        <html lang="ko">
+        <head>
+          <meta charset="UTF-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <title>공모전 대시보드</title>
+          <link rel="preconnect" href="https://fonts.googleapis.com" />
+          <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;600;700;900&display=swap" rel="stylesheet" />
+          <link rel="stylesheet" href="style.css" />
+        </head>
+        <body>
+          <!-- 배경 Mesh Gradient Blobs -->
+          <div class="bg-blob blob-1"></div>
+          <div class="bg-blob blob-2"></div>
+          <div class="bg-blob blob-3"></div>
 
-        StringBuilder sb = new StringBuilder();
-        sb.append("<!DOCTYPE html><html lang='ko'><head><meta charset='UTF-8'>");
-        sb.append("<meta name='viewport' content='width=device-width,initial-scale=1.0'>");
-        sb.append("<title>공모전 대시보드</title><style>");
-        sb.append("*{margin:0;padding:0;box-sizing:border-box}");
-        sb.append("body{font-family:'Malgun Gothic',sans-serif;background:#f0f4f8;color:#2d3748}");
-        sb.append("header{background:linear-gradient(135deg,#667eea,#764ba2);color:white;padding:48px 20px;text-align:center}");
-        sb.append("header h1{font-size:2.2rem;margin-bottom:10px}");
-        sb.append("header p{opacity:.85;margin-bottom:12px}");
-        sb.append(".badge{display:inline-block;background:rgba(255,255,255,0.2);padding:5px 16px;border-radius:20px;font-size:.85rem}");
-        sb.append(".container{max-width:1200px;margin:32px auto;padding:0 20px}");
-        sb.append(".stats{background:white;border-radius:14px;padding:18px 24px;margin-bottom:20px;");
-        sb.append("box-shadow:0 2px 10px rgba(0,0,0,.07);font-size:1rem;color:#4a5568}");
-        sb.append(".count{color:#667eea;font-weight:700;font-size:1.3rem}");
+          <!-- 헤더 -->
+          <header class="site-header">
+            <div class="header-inner">
+              <p class="header-eyebrow">LIVE · AUTO UPDATED 10:00 AM</p>
+              <h1 class="header-title">
+                <span class="gradient-text">공모전</span> 대시보드
+              </h1>
+              <p class="header-sub">IT·SW·AI 포함 전체 공모전을 매일 자동 수집합니다</p>
+            </div>
+          </header>
 
-        // ✅ 필터 버튼 스타일
-        sb.append(".filter-bar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center}");
-        sb.append(".filter-btn{padding:8px 20px;border-radius:20px;border:2px solid #667eea;");
-        sb.append("background:white;color:#667eea;font-size:.9rem;font-weight:600;cursor:pointer;transition:all .2s}");
-        sb.append(".filter-btn:hover{background:#667eea;color:white}");
-        sb.append(".filter-btn.active{background:#667eea;color:white}");
-        sb.append(".filter-label{font-size:.85rem;color:#718096;margin-left:4px}");
+          <!-- 메인 -->
+          <main class="container">
+            <!-- 통계 바 -->
+            <div class="stats-bar">
+              <div class="stat-item">
+                <span class="stat-num" id="totalCount">-</span>
+                <span class="stat-label">전체</span>
+              </div>
+              <div class="stat-divider"></div>
+              <div class="stat-item">
+                <span class="stat-num neon-green" id="devCount">-</span>
+                <span class="stat-label">개발</span>
+              </div>
+              <div class="stat-divider"></div>
+              <div class="stat-item">
+                <span class="stat-num neon-red" id="urgentCount">-</span>
+                <span class="stat-label">마감 임박</span>
+              </div>
+            </div>
 
-        sb.append(".page-info{text-align:center;color:#888;font-size:.85rem;margin-bottom:12px}");
-        sb.append(".grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:22px}");
-        sb.append(".card{background:white;border-radius:14px;padding:24px;box-shadow:0 2px 10px rgba(0,0,0,.07);");
-        sb.append("border-top:4px solid #667eea;display:flex;flex-direction:column;gap:10px;transition:transform .2s,box-shadow .2s}");
-        sb.append(".card:hover{transform:translateY(-4px);box-shadow:0 10px 28px rgba(0,0,0,.12)}");
+            <!-- 검색 + 필터 -->
+            <div class="toolbar">
+              <div class="search-wrap">
+                <span class="search-icon">⌕</span>
+                <input type="text" id="searchInput" class="search-input" placeholder="공모전 이름 검색..." />
+              </div>
+              <div class="filter-group">
+                <button class="filter-btn active" data-filter="all">전체</button>
+                <button class="filter-btn" data-filter="dev">💻 개발</button>
+              </div>
+              <div class="sort-group">
+                <select id="sortSelect" class="sort-select">
+                  <option value="default">최신순</option>
+                  <option value="deadline">마감 임박순</option>
+                </select>
+              </div>
+            </div>
 
-        // ✅ 개발 카드 강조 테두리 색상
-        sb.append(".card.dev{border-top-color:#48bb78}");
+            <!-- 페이지 정보 -->
+            <p class="page-info" id="pageInfo"></p>
 
-        sb.append(".card-title{font-size:1.05rem;font-weight:700;line-height:1.45;color:#1a202c}");
-        sb.append(".card-title a{color:inherit;text-decoration:none}");
-        sb.append(".card-title a:hover{color:#667eea}");
+            <!-- 카드 그리드 -->
+            <div class="card-grid" id="cardGrid">
+              <div class="loading-spinner">
+                <div class="spinner-ring"></div>
+                <p>데이터 로딩 중...</p>
+              </div>
+            </div>
 
-        // ✅ 개발 뱃지
-        sb.append(".dev-badge{display:inline-block;background:#f0fff4;color:#276749;border:1px solid #9ae6b4;");
-        sb.append("padding:2px 9px;border-radius:20px;font-size:.75rem;font-weight:700;margin-bottom:4px}");
+            <!-- 페이지네이션 -->
+            <div class="pagination" id="pagination"></div>
+          </main>
 
-        sb.append(".card-desc{font-size:.88rem;color:#718096;line-height:1.6}");
-        sb.append(".card-meta{display:flex;flex-direction:column;gap:6px;margin-top:auto;padding-top:10px;border-top:1px solid #e2e8f0}");
-        sb.append(".meta-row{display:flex;align-items:flex-start;gap:8px;font-size:.83rem;color:#718096}");
-        sb.append(".meta-label{font-weight:700;color:#4a5568;min-width:36px;flex-shrink:0}");
-        sb.append(".deadline-badge{background:#fff5f5;color:#e53e3e;padding:2px 8px;border-radius:6px;font-weight:600}");
-        sb.append(".collected{font-size:.75rem;color:#a0aec0;margin-top:4px}");
-        sb.append(".btn{display:block;margin-top:10px;padding:9px;background:#667eea;color:white;");
-        sb.append("border-radius:8px;font-size:.88rem;text-decoration:none;font-weight:600;text-align:center}");
-        sb.append(".btn:hover{background:#5a67d8}");
-        sb.append(".card.dev .btn{background:#48bb78}.card.dev .btn:hover{background:#38a169}");
-        sb.append(".pagination{display:flex;justify-content:center;align-items:center;gap:6px;margin:36px 0 24px;flex-wrap:wrap}");
-        sb.append(".pagination button{min-width:38px;height:38px;border:1px solid #ddd;border-radius:8px;");
-        sb.append("background:white;color:#333;font-size:.9rem;cursor:pointer;transition:all .2s}");
-        sb.append(".pagination button:hover:not(:disabled){background:#667eea;color:white;border-color:#667eea}");
-        sb.append(".pagination button.active{background:#667eea;color:white;border-color:#667eea;font-weight:700}");
-        sb.append(".pagination button:disabled{opacity:.35;cursor:not-allowed}");
-        sb.append(".empty{text-align:center;padding:60px 20px;color:#a0aec0;font-size:1rem}");
-        sb.append("footer{text-align:center;padding:48px 20px;color:#a0aec0;font-size:.85rem}");
-        sb.append("footer a{color:#667eea;text-decoration:none}");
-        sb.append("</style></head><body>");
+          <footer class="site-footer">
+            <p>데이터 출처:
+              <a href="https://www.contestkorea.com" target="_blank">공모전코리아</a>
+              · 매일 오전 10시 자동 업데이트
+            </p>
+          </footer>
 
-        // ── 헤더
-        sb.append("<header><h1>🏆 공모전 대시보드</h1>");
-        sb.append("<p>IT/SW/AI 포함 전체 공모전을 매일 자동 수집합니다</p>");
-        sb.append("<div class='badge'>매일 오전 10시 자동 업데이트</div></header>");
+          <script src="app.js"></script>
+        </body>
+        </html>
+        """;
 
-        sb.append("<div class='container'>");
-        sb.append("<div class='stats'>📅 ").append(today)
-                .append(" 기준 &nbsp;|&nbsp; 전체 <span class='count'>").append(contests.size())
-                .append("</span>개")
-                .append(" &nbsp;|&nbsp; 개발 관련 <span class='count'>").append(devCount)
-                .append("</span>개</div>");
+        // ── 3. style.css 생성
+        String cssPath = "output/style.css";
+        String css = generateCSS();
 
-        // ✅ 필터 버튼 — data-filter 속성으로 JS가 구분
-        sb.append("<div class='filter-bar'>");
-        sb.append("<button class='filter-btn active' data-filter='all'>📋 전체</button>");
-        sb.append("<button class='filter-btn' data-filter='dev'>💻 개발자</button>");
-        sb.append("</div>");
-
-        sb.append("<p class='page-info' id='pageInfo'></p>");
-
-        // ── 카드 그리드
-        sb.append("<div class='grid' id='cardGrid'>");
-        for (Contest c : contests) {
-            // ✅ isDev 이면 class='card dev', data-dev='1'
-            String cardClass = c.isDev ? "card dev" : "card";
-            String dataAttr  = c.isDev ? " data-dev='1'" : " data-dev='0'";
-            sb.append("<div class='").append(cardClass).append("'").append(dataAttr).append(">");
-
-            // ✅ 개발 뱃지 (해당 카드만)
-            if (c.isDev) sb.append("<span class='dev-badge'>💻 개발</span>");
-
-            sb.append("<div class='card-title'><a href='").append(esc(c.link))
-                    .append("' target='_blank'>").append(esc(c.title)).append("</a></div>");
-            if (c.description != null && !c.description.isEmpty())
-                sb.append("<div class='card-desc'>").append(esc(c.description)).append("</div>");
-            sb.append("<div class='card-meta'>");
-            if (c.host != null && !c.host.isEmpty())
-                sb.append("<div class='meta-row'><span class='meta-label'>주최</span><span>")
-                        .append(esc(c.host)).append("</span></div>");
-            if (c.deadline != null && !c.deadline.isEmpty())
-                sb.append("<div class='meta-row'><span class='meta-label'>마감</span>")
-                        .append("<span class='deadline-badge'>").append(esc(c.deadline)).append("</span></div>");
-            sb.append("</div>");
-            if (c.collectedDate != null)
-                sb.append("<div class='collected'>🗓 수집일: ").append(esc(c.collectedDate)).append("</div>");
-            sb.append("<a class='btn' href='").append(esc(c.link)).append("' target='_blank'>자세히 보기</a>");
-            sb.append("</div>");
-        }
-        sb.append("</div>"); // .grid
-
-        sb.append("<div class='pagination' id='pagination'></div>");
-        sb.append("</div>"); // .container
-
-        sb.append("<footer><p>데이터 출처: <a href='https://www.contestkorea.com' target='_blank'>공모전코리아</a>");
-        sb.append(" | 매일 오전 10시 자동 업데이트</p></footer>");
-
-        // ✅ JavaScript — 필터 + 페이지네이션 통합
-        sb.append("<script>");
-        sb.append("const PER_PAGE = 12;");
-        sb.append("let currentPage = 1;");
-        sb.append("let currentFilter = 'all';"); // ✅ 현재 필터 상태
-
-        // 필터 버튼 클릭 이벤트
-        sb.append("document.querySelectorAll('.filter-btn').forEach(btn => {");
-        sb.append("  btn.addEventListener('click', () => {");
-        sb.append("    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));");
-        sb.append("    btn.classList.add('active');");
-        sb.append("    currentFilter = btn.dataset.filter;");
-        sb.append("    currentPage = 1;"); // 필터 바꾸면 1페이지로 리셋
-        sb.append("    render();");
-        sb.append("  });");
-        sb.append("});");
-
-        // 현재 필터에 맞는 카드 배열 반환
-        sb.append("function getFiltered() {");
-        sb.append("  const all = Array.from(document.querySelectorAll('.card'));");
-        sb.append("  if (currentFilter === 'dev') return all.filter(c => c.dataset.dev === '1');");
-        sb.append("  return all;");
-        sb.append("}");
-
-        // 렌더
-        sb.append("function render() {");
-        sb.append("  const all = Array.from(document.querySelectorAll('.card'));");
-        sb.append("  const filtered = getFiltered();");
-        sb.append("  const total = filtered.length;");
-        sb.append("  const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));");
-        sb.append("  if (currentPage > totalPages) currentPage = totalPages;");
-
-        // 먼저 전부 숨기고
-        sb.append("  all.forEach(c => c.style.display = 'none');");
-        // 필터된 것만 현재 페이지 분 보이기
-        sb.append("  const start = (currentPage - 1) * PER_PAGE;");
-        sb.append("  filtered.slice(start, start + PER_PAGE).forEach(c => c.style.display = 'flex');");
-
-        // 빈 결과 처리
-        sb.append("  const grid = document.getElementById('cardGrid');");
-        sb.append("  const emptyEl = document.getElementById('emptyMsg');");
-        sb.append("  if (total === 0) {");
-        sb.append("    if (!emptyEl) { const d=document.createElement('p');d.id='emptyMsg';");
-        sb.append("    d.className='empty';d.textContent='해당 카테고리의 공모전이 없습니다.';");
-        sb.append("    grid.parentNode.insertBefore(d, grid.nextSibling); }");
-        sb.append("  } else { if (emptyEl) emptyEl.remove(); }");
-
-        sb.append("  document.getElementById('pageInfo').textContent =");
-        sb.append("    (currentFilter==='dev'?'💻 개발 공모전 ':'📋 전체 공모전 ')");
-        sb.append("    + total + '개 · ' + currentPage + ' / ' + totalPages + ' 페이지';");
-        sb.append("  renderPagination(total, totalPages);");
-        sb.append("  window.scrollTo({ top: 0, behavior: 'smooth' });");
-        sb.append("}");
-
-        // 페이지네이션 렌더
-        sb.append("function renderPagination(total, totalPages) {");
-        sb.append("  const pg = document.getElementById('pagination');");
-        sb.append("  if (totalPages <= 1) { pg.innerHTML = ''; return; }");
-        sb.append("  let html = '';");
-        sb.append("  html += `<button onclick='goPage(${currentPage-1})' ${currentPage===1?'disabled':''}>◀</button>`;");
-        sb.append("  let s = Math.max(1, currentPage-2), e = Math.min(totalPages, s+4);");
-        sb.append("  if (e-s < 4) s = Math.max(1, e-4);");
-        sb.append("  if (s > 1) html += '<button onclick=\"goPage(1)\">1</button>' + (s>2?'<button disabled>…</button>':'');");
-        sb.append("  for (let i=s; i<=e; i++) html += `<button onclick='goPage(${i})' class='${i===currentPage?\"active\":\"\"}'>${i}</button>`;");
-        sb.append("  if (e < totalPages) html += (e<totalPages-1?'<button disabled>…</button>':'') + `<button onclick='goPage(${totalPages})'>${totalPages}</button>`;");
-        sb.append("  html += `<button onclick='goPage(${currentPage+1})' ${currentPage===totalPages?'disabled':''}>▶</button>`;");
-        sb.append("  pg.innerHTML = html;");
-        sb.append("}");
-
-        sb.append("function goPage(n) {");
-        sb.append("  const totalPages = Math.max(1, Math.ceil(getFiltered().length / PER_PAGE));");
-        sb.append("  if (n < 1 || n > totalPages) return;");
-        sb.append("  currentPage = n; render();");
-        sb.append("}");
-
-        sb.append("render();"); // 초기 실행
-        sb.append("</script>");
-
-        sb.append("</body></html>");
+        // ── 4. app.js 생성
+        String jsPath = "output/app.js";
+        String js = generateJS();
 
         try {
             Files.createDirectories(Paths.get("output"));
-            Files.write(Paths.get("output/index.html"), sb.toString().getBytes("UTF-8"));
-            System.out.println("index.html 생성 완료");
+            Files.write(Paths.get(htmlPath), html.getBytes("UTF-8"));
+            Files.write(Paths.get(cssPath), css.getBytes("UTF-8"));
+            Files.write(Paths.get(jsPath),  js.getBytes("UTF-8"));
+            System.out.println("index.html / style.css / app.js 생성 완료");
         } catch (IOException e) {
             System.err.println("저장 실패: " + e.getMessage());
         }
     }
+
+    static String generateCSS() {
+        return """
+        /* ── Reset & Base ── */
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+        :root {
+          --bg:        #030712;
+          --surface:   rgba(255,255,255,0.04);
+          --border:    rgba(255,255,255,0.08);
+          --text:      #e2e8f0;
+          --text-muted:#64748b;
+          --purple:    #a855f7;
+          --blue:      #3b82f6;
+          --green:     #22c55e;
+          --red:       #ef4444;
+          --gold:      #f59e0b;
+          --font:      'Pretendard', 'Apple SD Gothic Neo', sans-serif;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+          background: var(--bg);
+          color: var(--text);
+          font-family: var(--font);
+          min-height: 100vh;
+          overflow-x: hidden;
+          letter-spacing: 0.01em;
+        }
+
+        /* ── Background Blobs ── */
+        .bg-blob {
+          position: fixed;
+          border-radius: 50%;
+          filter: blur(120px);
+          opacity: 0.18;
+          pointer-events: none;
+          z-index: 0;
+          animation: blobFloat 12s ease-in-out infinite alternate;
+        }
+        .blob-1 {
+          width: 600px; height: 600px;
+          background: var(--purple);
+          top: -200px; left: -200px;
+          animation-delay: 0s;
+        }
+        .blob-2 {
+          width: 500px; height: 500px;
+          background: var(--blue);
+          top: 50%; right: -150px;
+          animation-delay: -4s;
+        }
+        .blob-3 {
+          width: 400px; height: 400px;
+          background: #ec4899;
+          bottom: -100px; left: 40%;
+          animation-delay: -8s;
+        }
+        @keyframes blobFloat {
+          from { transform: translate(0,0) scale(1); }
+          to   { transform: translate(40px, 30px) scale(1.08); }
+        }
+
+        /* ── Header ── */
+        .site-header {
+          position: relative; z-index: 1;
+          padding: 80px 20px 60px;
+          text-align: center;
+        }
+        .header-inner { max-width: 700px; margin: 0 auto; }
+
+        .header-eyebrow {
+          font-size: .75rem;
+          letter-spacing: .25em;
+          color: var(--green);
+          margin-bottom: 16px;
+          display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .header-eyebrow::before {
+          content: '';
+          display: inline-block;
+          width: 8px; height: 8px;
+          border-radius: 50%;
+          background: var(--green);
+          box-shadow: 0 0 8px var(--green);
+          animation: livePulse 1.4s ease-in-out infinite;
+        }
+        @keyframes livePulse {
+          0%,100% { opacity:1; box-shadow: 0 0 8px var(--green); }
+          50%      { opacity:.4; box-shadow: 0 0 18px var(--green); }
+        }
+
+        .header-title {
+          font-size: clamp(2.4rem, 6vw, 4rem);
+          font-weight: 900;
+          line-height: 1.1;
+          letter-spacing: -0.02em;
+          color: #fff;
+          margin-bottom: 16px;
+        }
+        .gradient-text {
+          background: linear-gradient(135deg, var(--purple), var(--blue), #ec4899);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        .header-sub {
+          font-size: 1rem;
+          color: var(--text-muted);
+          font-weight: 300;
+          letter-spacing: .04em;
+        }
+
+        /* ── Container ── */
+        .container {
+          position: relative; z-index: 1;
+          max-width: 1300px;
+          margin: 0 auto;
+          padding: 0 24px 80px;
+        }
+
+        /* ── Stats Bar ── */
+        .stats-bar {
+          display: flex; align-items: center; justify-content: center;
+          gap: 0;
+          background: var(--surface);
+          border: 1px solid var(--border);
+          backdrop-filter: blur(20px);
+          border-radius: 16px;
+          padding: 20px 40px;
+          margin-bottom: 32px;
+          width: fit-content;
+          margin-left: auto; margin-right: auto;
+        }
+        .stat-item { text-align: center; padding: 0 32px; }
+        .stat-num {
+          display: block;
+          font-size: 2rem; font-weight: 900;
+          color: #fff;
+          letter-spacing: -0.03em;
+        }
+        .stat-num.neon-green { color: var(--green); text-shadow: 0 0 20px rgba(34,197,94,.5); }
+        .stat-num.neon-red   { color: var(--red);   text-shadow: 0 0 20px rgba(239,68,68,.5); }
+        .stat-label { font-size: .78rem; color: var(--text-muted); letter-spacing: .1em; text-transform: uppercase; }
+        .stat-divider { width: 1px; height: 40px; background: var(--border); }
+
+        /* ── Toolbar ── */
+        .toolbar {
+          display: flex; align-items: center; gap: 14px;
+          flex-wrap: wrap;
+          margin-bottom: 20px;
+        }
+        .search-wrap {
+          flex: 1; min-width: 220px;
+          position: relative;
+        }
+        .search-icon {
+          position: absolute; left: 14px; top: 50%;
+          transform: translateY(-50%);
+          color: var(--text-muted); font-size: 1.2rem;
+        }
+        .search-input {
+          width: 100%;
+          background: var(--surface);
+          border: 1px solid var(--border);
+          backdrop-filter: blur(12px);
+          border-radius: 12px;
+          padding: 11px 16px 11px 40px;
+          color: var(--text);
+          font-size: .9rem;
+          font-family: var(--font);
+          outline: none;
+          transition: border-color .2s, box-shadow .2s;
+        }
+        .search-input:focus {
+          border-color: var(--purple);
+          box-shadow: 0 0 0 3px rgba(168,85,247,.15);
+        }
+        .search-input::placeholder { color: var(--text-muted); }
+
+        .filter-group { display: flex; gap: 8px; }
+        .filter-btn {
+          padding: 10px 20px;
+          border-radius: 10px;
+          border: 1px solid var(--border);
+          background: var(--surface);
+          color: var(--text-muted);
+          font-size: .85rem; font-weight: 600;
+          font-family: var(--font);
+          letter-spacing: .04em;
+          cursor: pointer;
+          transition: all .2s;
+          backdrop-filter: blur(12px);
+        }
+        .filter-btn:hover { border-color: var(--purple); color: var(--text); }
+        .filter-btn.active {
+          background: linear-gradient(135deg, var(--purple), var(--blue));
+          border-color: transparent;
+          color: #fff;
+          box-shadow: 0 0 20px rgba(168,85,247,.4);
+        }
+
+        .sort-select {
+          background: var(--surface);
+          border: 1px solid var(--border);
+          backdrop-filter: blur(12px);
+          border-radius: 10px;
+          padding: 10px 14px;
+          color: var(--text);
+          font-size: .85rem;
+          font-family: var(--font);
+          outline: none;
+          cursor: pointer;
+        }
+
+        /* ── Page Info ── */
+        .page-info {
+          font-size: .8rem; color: var(--text-muted);
+          letter-spacing: .06em;
+          margin-bottom: 20px;
+        }
+
+        /* ── Card Grid (Bento) ── */
+        .card-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+          gap: 20px;
+        }
+
+        /* ── Card ── */
+        .card {
+          position: relative;
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: 20px;
+          padding: 26px;
+          display: flex; flex-direction: column; gap: 12px;
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          overflow: hidden;
+          cursor: pointer;
+          transition: transform .3s cubic-bezier(.34,1.56,.64,1),
+                      box-shadow .3s ease,
+                      border-color .3s ease;
+        }
+        /* Border Beam (hover glow sweep) */
+        .card::before {
+          content: '';
+          position: absolute; inset: 0;
+          border-radius: 20px;
+          padding: 1px;
+          background: linear-gradient(135deg, var(--purple), var(--blue), var(--green), var(--purple));
+          background-size: 300% 300%;
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: destination-out;
+          mask-composite: exclude;
+          opacity: 0;
+          transition: opacity .3s;
+          animation: borderBeam 3s linear infinite;
+        }
+        .card:hover::before { opacity: 1; }
+        @keyframes borderBeam {
+          0%   { background-position: 0% 50%; }
+          50%  { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+
+        .card:hover {
+          transform: translateY(-6px) scale(1.01);
+          box-shadow: 0 20px 60px rgba(168,85,247,.15),
+                      0 4px 20px rgba(0,0,0,.5);
+        }
+        /* 개발 카드 — Green Glow */
+        .card.dev:hover {
+          box-shadow: 0 20px 60px rgba(34,197,94,.15),
+                      0 4px 20px rgba(0,0,0,.5);
+        }
+
+        /* ── Card — Dev Badge ── */
+        .dev-badge {
+          display: inline-flex; align-items: center; gap: 5px;
+          background: rgba(34,197,94,.1);
+          border: 1px solid rgba(34,197,94,.3);
+          color: var(--green);
+          padding: 3px 10px; border-radius: 6px;
+          font-size: .72rem; font-weight: 700;
+          letter-spacing: .08em;
+          width: fit-content;
+        }
+
+        /* ── Card — D-Day Badge ── */
+        .dday-badge {
+          display: inline-flex; align-items: center; gap: 6px;
+          padding: 4px 12px; border-radius: 8px;
+          font-size: .78rem; font-weight: 700;
+          letter-spacing: .06em;
+        }
+        .dday-safe    { background: rgba(34,197,94,.1);  color: var(--green); border:1px solid rgba(34,197,94,.25); }
+        .dday-warn    { background: rgba(245,158,11,.1);  color: var(--gold);  border:1px solid rgba(245,158,11,.25); }
+        .dday-danger  { background: rgba(239,68,68,.1);  color: var(--red);   border:1px solid rgba(239,68,68,.25);
+                        animation: ddayBlink 1.2s ease-in-out infinite; }
+        @keyframes ddayBlink {
+          0%,100% { box-shadow: 0 0 8px rgba(239,68,68,.3); }
+          50%      { box-shadow: 0 0 20px rgba(239,68,68,.7); }
+        }
+        .dday-live-dot {
+          width: 7px; height: 7px; border-radius: 50%;
+          background: currentColor;
+          animation: livePulse 1.2s ease-in-out infinite;
+        }
+
+        /* ── Card — Title ── */
+        .card-title {
+          font-size: 1rem; font-weight: 700;
+          line-height: 1.5; color: #f1f5f9;
+        }
+        .card-title a { color: inherit; text-decoration: none; }
+        .card-title a:hover { color: var(--purple); }
+
+        /* ── Card — Desc ── */
+        .card-desc {
+          font-size: .83rem; color: var(--text-muted);
+          line-height: 1.65; font-weight: 300;
+        }
+
+        /* ── Card — Meta ── */
+        .card-meta {
+          margin-top: auto;
+          padding-top: 14px;
+          border-top: 1px solid var(--border);
+          display: flex; flex-direction: column; gap: 7px;
+        }
+        .meta-row {
+          display: flex; align-items: flex-start; gap: 10px;
+          font-size: .81rem; color: var(--text-muted);
+        }
+        .meta-icon { font-size: .9rem; flex-shrink: 0; margin-top: 1px; }
+        .meta-label { font-weight: 700; color: #94a3b8; min-width: 28px; flex-shrink:0; }
+        .deadline-text { color: #cbd5e1; }
+
+        /* ── Card — Collected Date ── */
+        .collected {
+          font-size: .72rem; color: #334155;
+          letter-spacing: .04em;
+        }
+
+        /* ── Card — CTA Button ── */
+        .card-btn {
+          display: block; margin-top: 6px;
+          padding: 10px;
+          background: linear-gradient(135deg, var(--purple), var(--blue));
+          color: #fff; font-weight: 700; font-size: .85rem;
+          font-family: var(--font);
+          text-align: center; text-decoration: none;
+          border-radius: 10px;
+          letter-spacing: .06em;
+          transition: opacity .2s, transform .15s;
+        }
+        .card-btn:hover { opacity: .85; transform: scale(1.02); }
+        .card.dev .card-btn {
+          background: linear-gradient(135deg, #16a34a, #059669);
+        }
+
+        /* ── Pagination ── */
+        .pagination {
+          display: flex; justify-content: center; align-items: center;
+          gap: 6px; margin: 48px 0 24px;
+          flex-wrap: wrap;
+        }
+        .pagination button {
+          min-width: 40px; height: 40px;
+          border: 1px solid var(--border);
+          border-radius: 10px;
+          background: var(--surface);
+          backdrop-filter: blur(10px);
+          color: var(--text-muted);
+          font-size: .88rem; font-family: var(--font);
+          cursor: pointer;
+          transition: all .2s;
+        }
+        .pagination button:hover:not(:disabled) {
+          border-color: var(--purple);
+          color: var(--text);
+          box-shadow: 0 0 12px rgba(168,85,247,.3);
+        }
+        .pagination button.active {
+          background: linear-gradient(135deg, var(--purple), var(--blue));
+          border-color: transparent;
+          color: #fff;
+          box-shadow: 0 0 18px rgba(168,85,247,.4);
+          font-weight: 700;
+        }
+        .pagination button:disabled { opacity: .25; cursor: not-allowed; }
+
+        /* ── Loading ── */
+        .loading-spinner {
+          grid-column: 1 / -1;
+          text-align: center;
+          padding: 80px 20px;
+          color: var(--text-muted);
+          font-size: .9rem;
+        }
+        .spinner-ring {
+          width: 48px; height: 48px;
+          border: 3px solid var(--border);
+          border-top-color: var(--purple);
+          border-radius: 50%;
+          margin: 0 auto 16px;
+          animation: spin .8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Empty ── */
+        .empty-msg {
+          grid-column: 1 / -1;
+          text-align: center;
+          padding: 80px 20px;
+          color: var(--text-muted);
+          font-size: .95rem;
+          letter-spacing: .04em;
+        }
+
+        /* ── Footer ── */
+        .site-footer {
+          position: relative; z-index: 1;
+          text-align: center;
+          padding: 48px 20px;
+          color: var(--text-muted);
+          font-size: .8rem;
+          border-top: 1px solid var(--border);
+          letter-spacing: .04em;
+        }
+        .site-footer a { color: var(--purple); text-decoration: none; }
+        .site-footer a:hover { text-decoration: underline; }
+
+        /* ── Scrollbar ── */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb {
+          background: rgba(168,85,247,.3);
+          border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(168,85,247,.6); }
+        """;
+    }
+
+
+    static String generateJS() {
+        return """
+        'use strict';
+
+        const PER_PAGE = 12;
+        let currentPage   = 1;
+        let currentFilter = 'all';
+        let searchQuery   = '';
+        let sortMode      = 'default';
+        let allContests   = [];
+
+        // ── D-Day 계산
+        function calcDday(deadlineStr) {
+          if (!deadlineStr) return null;
+          const m = deadlineStr.match(/(\\d{4})[.\\-\\/](\\d{1,2})[.\\-\\/](\\d{1,2})/);
+          if (!m) return null;
+          const d   = new Date(+m[1], +m[2]-1, +m[3]);
+          const now = new Date();
+          now.setHours(0,0,0,0);
+          return Math.ceil((d - now) / 86400000);
+        }
+
+        // ── D-Day 뱃지 HTML
+        function ddayHTML(deadlineStr) {
+          const d = calcDday(deadlineStr);
+          if (d === null) return '';
+          if (d < 0)  return `<span class="dday-badge dday-danger"><span class="dday-live-dot"></span> 마감</span>`;
+          if (d === 0) return `<span class="dday-badge dday-danger"><span class="dday-live-dot"></span> D-DAY</span>`;
+          if (d <= 3)  return `<span class="dday-badge dday-danger"><span class="dday-live-dot"></span> D-${d}</span>`;
+          if (d <= 7)  return `<span class="dday-badge dday-warn">D-${d}</span>`;
+          return `<span class="dday-badge dday-safe">D-${d}</span>`;
+        }
+
+        // ── 카드 HTML 생성
+        function cardHTML(c) {
+          const devCls  = c.isDev ? ' dev' : '';
+          const devBadge = c.isDev
+            ? `<span class="dev-badge">▸ 개발</span>` : '';
+          const dday = ddayHTML(c.deadline);
+          const desc = c.description
+            ? `<div class="card-desc">${esc(c.description)}</div>` : '';
+          const host = c.host
+            ? `<div class="meta-row">
+                <span class="meta-icon">🏢</span>
+                <span class="meta-label">주최</span>
+                <span>${esc(c.host)}</span>
+               </div>` : '';
+          const dl = c.deadline
+            ? `<div class="meta-row">
+                <span class="meta-icon">📅</span>
+                <span class="meta-label">마감</span>
+                <span class="deadline-text">${esc(c.deadline)}</span>
+               </div>` : '';
+          const collected = c.collectedDate
+            ? `<div class="collected">수집일 ${esc(c.collectedDate)}</div>` : '';
+
+          return `
+            <div class="card${devCls}">
+              <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
+                ${devBadge}
+                ${dday}
+              </div>
+              <div class="card-title">
+                <a href="${esc(c.link)}" target="_blank" rel="noopener">${esc(c.title)}</a>
+              </div>
+              ${desc}
+              <div class="card-meta">
+                ${host}
+                ${dl}
+                ${collected}
+              </div>
+              <a class="card-btn" href="${esc(c.link)}" target="_blank" rel="noopener">자세히 보기 →</a>
+            </div>`;
+        }
+
+        // ── 필터 + 검색 + 정렬 적용
+        function getFiltered() {
+          let list = allContests;
+          if (currentFilter === 'dev') list = list.filter(c => c.isDev);
+          if (searchQuery) {
+            const q = searchQuery.toLowerCase();
+            list = list.filter(c =>
+              (c.title  && c.title.toLowerCase().includes(q)) ||
+              (c.host   && c.host.toLowerCase().includes(q))
+            );
+          }
+          if (sortMode === 'deadline') {
+            list = [...list].sort((a, b) => {
+              const da = calcDday(a.deadline) ?? 9999;
+              const db = calcDday(b.deadline) ?? 9999;
+              return da - db;
+            });
+          }
+          return list;
+        }
+
+        // ── 통계 업데이트
+        function updateStats() {
+          const urgent = allContests.filter(c => {
+            const d = calcDday(c.deadline);
+            return d !== null && d >= 0 && d <= 3;
+          }).length;
+          document.getElementById('totalCount').textContent = allContests.length;
+          document.getElementById('devCount').textContent   = allContests.filter(c => c.isDev).length;
+          document.getElementById('urgentCount').textContent = urgent;
+        }
+
+        // ── 렌더
+        function render() {
+          const filtered   = getFiltered();
+          const total      = filtered.length;
+          const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
+          if (currentPage > totalPages) currentPage = totalPages;
+
+          const start = (currentPage - 1) * PER_PAGE;
+          const slice = filtered.slice(start, start + PER_PAGE);
+
+          const grid = document.getElementById('cardGrid');
+          if (total === 0) {
+            grid.innerHTML = `<div class="empty-msg">😶 해당 조건의 공모전이 없습니다.</div>`;
+          } else {
+            grid.innerHTML = slice.map(cardHTML).join('');
+          }
+
+          // 카드 페이드인 애니메이션
+          grid.querySelectorAll('.card').forEach((el, i) => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(16px)';
+            setTimeout(() => {
+              el.style.transition = 'opacity .35s ease, transform .35s ease';
+              el.style.opacity    = '1';
+              el.style.transform  = 'translateY(0)';
+            }, i * 40);
+          });
+
+          const filterLabel = currentFilter === 'dev' ? '💻 개발 공모전' : '📋 전체 공모전';
+          document.getElementById('pageInfo').textContent =
+            `${filterLabel} ${total}개 · ${currentPage} / ${totalPages} 페이지`;
+
+          renderPagination(totalPages);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ── 페이지네이션
+        function renderPagination(totalPages) {
+          const pg = document.getElementById('pagination');
+          if (totalPages <= 1) { pg.innerHTML = ''; return; }
+          let html = '';
+          html += `<button onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>◀</button>`;
+          let s = Math.max(1, currentPage-2), e = Math.min(totalPages, s+4);
+          if (e-s < 4) s = Math.max(1, e-4);
+          if (s > 1) {
+            html += `<button onclick="goPage(1)">1</button>`;
+            if (s > 2) html += `<button disabled>…</button>`;
+          }
+          for (let i=s; i<=e; i++)
+            html += `<button onclick="goPage(${i})" class="${i===currentPage?'active':''}">${i}</button>`;
+          if (e < totalPages) {
+            if (e < totalPages-1) html += `<button disabled>…</button>`;
+            html += `<button onclick="goPage(${totalPages})">${totalPages}</button>`;
+          }
+          html += `<button onclick="goPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>▶</button>`;
+          pg.innerHTML = html;
+        }
+
+        function goPage(n) {
+          const tp = Math.max(1, Math.ceil(getFiltered().length / PER_PAGE));
+          if (n < 1 || n > tp) return;
+          currentPage = n; render();
+        }
+
+        // ── 이벤트 바인딩
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentFilter = btn.dataset.filter;
+            currentPage = 1;
+            render();
+          });
+        });
+
+        let searchTimer;
+        document.getElementById('searchInput').addEventListener('input', e => {
+          clearTimeout(searchTimer);
+          searchTimer = setTimeout(() => {
+            searchQuery = e.target.value.trim();
+            currentPage = 1;
+            render();
+          }, 250);
+        });
+
+        document.getElementById('sortSelect').addEventListener('change', e => {
+          sortMode = e.target.value;
+          currentPage = 1;
+          render();
+        });
+
+        // ── XSS 방어
+        function esc(t) {
+          if (!t) return '';
+          return t.replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                  .replace(/>/g,'&gt;').replace(/'/g,'&#39;')
+                  .replace(/"/g,'&quot;');
+        }
+
+        // ── contests.json 로드 후 시작
+        fetch('contests.json')
+          .then(r => r.json())
+          .then(data => {
+            allContests = data;
+            updateStats();
+            render();
+          })
+          .catch(() => {
+            document.getElementById('cardGrid').innerHTML =
+              '<div class="empty-msg">⚠️ 데이터를 불러오지 못했습니다. contests.json을 확인해주세요.</div>';
+          });
+        """;
+    }
+
+
 
     static String esc(String t) {
         if (t == null) return "";
