@@ -171,8 +171,7 @@ public class ContestCrawler {
                     if (rawTitle.matches("^\\d+\\..*")) continue;
 
                     String title = rawTitle.replaceAll(
-                            "^(학문|과학|미술|사진|문학|네이밍|기획|아이디어|캐릭터|공연|건축|창업|기타|문예)" +
-                                    "([•·/\\s]*(IT|SW|과학|미술|디자인|웹툰|음악|체육|기타))*[^가-힣0-9a-zA-Z]*", ""
+                            "^((학문|과학|미술|사진|문학|네이밍|기획|아이디어|캐릭터|공연|건축|창업|기타|문예|IT|SW|디자인|웹툰|음악|체육|공예|스포츠|환경|인문|사회)[•·/\\s]*)+[^가-힣0-9a-zA-Z]*", ""
                     ).trim();
 
                     String cleanTitle = title.replaceAll("^\\d+\\.\\s*", "").trim();
