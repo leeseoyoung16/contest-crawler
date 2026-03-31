@@ -814,8 +814,9 @@ public class ContestCrawler {
         // ── D-Day 계산
         function calcDday(deadlineStr) {
           if (!deadlineStr) return null;
-          const m = deadlineStr.match(/(\\d{4})[.\\-\\/](\\d{1,2})[.\\-\\/](\\d{1,2})/);
-          if (!m) return null;
+          const matches = [...deadlineStr.matchAll(/(\\d{4})[.\\-\\/](\\d{1,2})[.\\-\\/](\\d{1,2})/g)];
+          if (!matches.length) return null;
+          const m = matches[matches.length - 1];
           const d   = new Date(+m[1], +m[2]-1, +m[3]);
           const now = new Date();
           now.setHours(0,0,0,0);
