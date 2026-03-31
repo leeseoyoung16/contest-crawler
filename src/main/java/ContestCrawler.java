@@ -18,7 +18,7 @@ public class ContestCrawler {
     static class Contest {
         public String title, host, deadline, description, link;
         public String collectedDate;
-        public boolean isDev; // ✅ 개발 관련 여부 플래그 추가
+        public boolean isDev;
 
         public Contest() {}
         Contest(String title, String host, String deadline, String description, String link, boolean isDev) {
@@ -36,7 +36,7 @@ public class ContestCrawler {
     static final ObjectMapper mapper = new ObjectMapper()
             .enable(SerializationFeature.INDENT_OUTPUT);
 
-    // ✅ 개발 관련 키워드 — 클래스 레벨로 분리
+    //  개발 관련 키워드 — 클래스 레벨로 분리
     static final String[] DEV_KEYWORDS = {
             "개발", "SW", "소프트웨어", "앱", "해커톤", "hackathon",
             "프로그래밍", "코딩", "인공지능", "AI", "빅데이터",
@@ -66,7 +66,7 @@ public class ContestCrawler {
 
         for (Contest c : merged.values()) {
             LocalDate deadline = parseDeadline(c.deadline);
-            if (deadline == null || !deadline.isBefore(today)) {
+            if (deadline != null && !deadline.isBefore(today)) {
                 filtered.add(c);
             } else {
                 System.out.println("만료 제거: " + c.title + " (" + c.deadline + ")");
@@ -141,7 +141,7 @@ public class ContestCrawler {
         return last;
     }
 
-    // ✅ 개발 키워드 포함 여부 판별 유틸
+    //  개발 키워드 포함 여부 판별 유틸
     static boolean isDevRelated(String title) {
         String lower = title.toLowerCase();
         for (String kw : DEV_KEYWORDS) {
@@ -186,7 +186,7 @@ public class ContestCrawler {
                     seenTitles.add(cleanTitle);
                     seenLinks.add(fullLink);
 
-                    // ✅ 키워드 필터 제거 → isDev 플래그만 판별
+                    //  키워드 필터 제거 → isDev 플래그만 판별
                     boolean devFlag = isDevRelated(cleanTitle);
 
                     // 상세 페이지
@@ -224,7 +224,7 @@ public class ContestCrawler {
                         continue;
                     }
 
-                    // ✅ devFlag 전달
+                    //  devFlag 전달
                     contests.add(new Contest(cleanTitle, host, deadline, description, fullLink, devFlag));
                     System.out.println("수집" + (devFlag ? "[개발]" : "[일반]") + ": " + cleanTitle);
                 }
