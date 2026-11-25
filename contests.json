@@ -44,7 +44,7 @@
   "deadline" : "2026.09.21 ~ 2026.11.30",
   "description" : "",
   "link" : "https://www.contestkorea.com/sub/view.php?int_gbn=1&Txt_bcode=030310001&str_no=202609210004",
-  "collectedDate" : "2026-11-24",
+  "collectedDate" : "2026-11-25",
   "isDev" : false
 }, {
   "title" : "NUR-CONNECT: 삶 전반을 잇는 간호] 공모전",
@@ -52,7 +52,7 @@
   "deadline" : "2026.10.01 ~ 2026.11.30",
   "description" : "",
   "link" : "https://www.contestkorea.com/sub/view.php?int_gbn=1&Txt_bcode=030310001&str_no=202610010096",
-  "collectedDate" : "2026-11-24",
+  "collectedDate" : "2026-11-25",
   "isDev" : false
 }, {
   "title" : "학술정보국_ 「NUR-CONNECT: 삶 전반을 잇는 간호」 공모전",
@@ -60,7 +60,7 @@
   "deadline" : "2026.10.01 ~ 2026.11.30",
   "description" : "",
   "link" : "https://www.contestkorea.com/sub/view.php?int_gbn=1&Txt_bcode=030310001&str_no=202610060040",
-  "collectedDate" : "2026-11-24",
+  "collectedDate" : "2026-11-25",
   "isDev" : false
 }, {
   "title" : "제3회 생성형 AI 경진대회 (초·중·고 학생문화경진대회)",
@@ -68,7 +68,7 @@
   "deadline" : "2026.10.05 ~ 2026.11.25",
   "description" : "",
   "link" : "https://www.contestkorea.com/sub/view.php?int_gbn=1&Txt_bcode=030310001&str_no=202610140076",
-  "collectedDate" : "2026-11-24",
+  "collectedDate" : "2026-11-25",
   "isDev" : true
 }, {
   "title" : "농업가치 확산을 위한 농심천심 대학(원)생 논문 공모전",
@@ -76,7 +76,7 @@
   "deadline" : "2027.02.22 ~ 2027.02.26",
   "description" : "",
   "link" : "https://www.contestkorea.com/sub/view.php?int_gbn=1&Txt_bcode=030310001&str_no=202610120066",
-  "collectedDate" : "2026-11-24",
+  "collectedDate" : "2026-11-25",
   "isDev" : false
 }, {
   "title" : "2026 대학생 정책 아이디어 공모전",
@@ -92,7 +92,7 @@
   "deadline" : "2026.10.26 ~ 2026.11.30",
   "description" : "",
   "link" : "https://www.contestkorea.com/sub/view.php?int_gbn=1&Txt_bcode=030310001&str_no=202610270002",
-  "collectedDate" : "2026-11-24",
+  "collectedDate" : "2026-11-25",
   "isDev" : true
 }, {
   "title" : "2027 동계 청소년 IT학술대회 및 대학생 IT논문경진대회",
@@ -100,7 +100,7 @@
   "deadline" : "2026.11.02 ~ 2027.01.15",
   "description" : "",
   "link" : "https://www.contestkorea.com/sub/view.php?int_gbn=1&Txt_bcode=030310001&str_no=202611020040",
-  "collectedDate" : "2026-11-24",
+  "collectedDate" : "2026-11-25",
   "isDev" : false
 }, {
   "title" : "2026 제4회 전남광주 북구청장배 전국 아마추어 e스포츠 대회",
@@ -108,7 +108,7 @@
   "deadline" : "2026.10.19 ~ 2026.12.27",
   "description" : "",
   "link" : "https://www.contestkorea.com/sub/view.php?int_gbn=1&Txt_bcode=030310001&str_no=202611020032",
-  "collectedDate" : "2026-11-24",
+  "collectedDate" : "2026-11-25",
   "isDev" : false
 }, {
   "title" : "2026 서울관광 프롬프톤] 참가자모집",
@@ -116,7 +116,7 @@
   "deadline" : "2026.11.09 ~ 2026.11.29",
   "description" : "",
   "link" : "https://www.contestkorea.com/sub/view.php?int_gbn=1&Txt_bcode=030310001&str_no=202611100065",
-  "collectedDate" : "2026-11-24",
+  "collectedDate" : "2026-11-25",
   "isDev" : false
 }, {
   "title" : "2026년 11월 KESEL 이퓨쳐 DISCOVERY 영어말하기대회",
@@ -124,7 +124,7 @@
   "deadline" : "2026.11.02 ~ 2026.11.29",
   "description" : "",
   "link" : "https://www.contestkorea.com/sub/view.php?int_gbn=1&Txt_bcode=030310001&str_no=202611120042",
-  "collectedDate" : "2026-11-24",
+  "collectedDate" : "2026-11-25",
   "isDev" : false
 }, {
   "title" : "제2회 교원그룹과 함께하는 루브 골드버그 머신 콘테스트 아시아 대표 선발대회",
@@ -132,15 +132,15 @@
   "deadline" : "2026.11.19 ~ 2027.01.17",
   "description" : "",
   "link" : "https://www.contestkorea.com/sub/view.php?int_gbn=1&Txt_bcode=030310001&str_no=202611160022",
-  "collectedDate" : "2026-11-24",
+  "collectedDate" : "2026-11-25",
   "isDev" : false
 }, {
-  "title" : "TripPups AI Game Hackathon 2026",
-  "host" : "Trip-Pups/HACK:ON(해커온)",
-  "deadline" : "2026.11.16 ~ 2026.11.28",
+  "title" : "HACK:ON AI Game Hackathon 2026",
+  "host" : "HACK:ON(해커온)/HACK:ON(해커온)",
+  "deadline" : "2026.11.16 ~ 2026.12.12",
   "description" : "",
   "link" : "https://www.contestkorea.com/sub/view.php?int_gbn=1&Txt_bcode=030310001&str_no=202611160001",
-  "collectedDate" : "2026-11-23",
+  "collectedDate" : "2026-11-25",
   "isDev" : true
 }, {
   "title" : "2026 창업도시 프로젝트 <지역문제 해결형 AI활용 경진대회>",
@@ -148,7 +148,7 @@
   "deadline" : "2026.11.06 ~ 2026.11.30",
   "description" : "",
   "link" : "https://www.contestkorea.com/sub/view.php?int_gbn=1&Txt_bcode=030310001&str_no=202611090018",
-  "collectedDate" : "2026-11-24",
+  "collectedDate" : "2026-11-25",
   "isDev" : true
 }, {
   "title" : "2027 MOBIS Robotics Challenge 현대모비스 로보틱스 경진대회",
@@ -156,7 +156,7 @@
   "deadline" : "2026.11.09 ~ 2026.12.04",
   "description" : "",
   "link" : "https://www.contestkorea.com/sub/view.php?int_gbn=1&Txt_bcode=030310001&str_no=202611070019",
-  "collectedDate" : "2026-11-24",
+  "collectedDate" : "2026-11-25",
   "isDev" : false
 }, {
   "title" : "2026 강원 차세대 과학전문가상」 공모전",
@@ -164,7 +164,7 @@
   "deadline" : "2026.11.17 ~ 2026.11.30",
   "description" : "",
   "link" : "https://www.contestkorea.com/sub/view.php?int_gbn=1&Txt_bcode=030310001&str_no=202611170043",
-  "collectedDate" : "2026-11-24",
+  "collectedDate" : "2026-11-25",
   "isDev" : false
 }, {
   "title" : "2027 제 2회 Superb AI X BDAI Vision AI 해커톤",
@@ -172,7 +172,7 @@
   "deadline" : "2026.11.16 ~ 2027.01.10",
   "description" : "",
   "link" : "https://www.contestkorea.com/sub/view.php?int_gbn=1&Txt_bcode=030310001&str_no=202611170034",
-  "collectedDate" : "2026-11-24",
+  "collectedDate" : "2026-11-25",
   "isDev" : true
 }, {
   "title" : "제 3회 스마트그리드 아이디어 공모전",
@@ -180,7 +180,7 @@
   "deadline" : "2026.11.16 ~ 2026.12.24",
   "description" : "",
   "link" : "https://www.contestkorea.com/sub/view.php?int_gbn=1&Txt_bcode=030310001&str_no=202611190035",
-  "collectedDate" : "2026-11-24",
+  "collectedDate" : "2026-11-25",
   "isDev" : false
 }, {
   "title" : "2026 saaskr 게임 어워드",
@@ -188,7 +188,7 @@
   "deadline" : "2026.10.21 ~ 2026.12.20",
   "description" : "",
   "link" : "https://www.contestkorea.com/sub/view.php?int_gbn=1&Txt_bcode=030310001&str_no=202611130021",
-  "collectedDate" : "2026-11-24",
+  "collectedDate" : "2026-11-25",
   "isDev" : true
 }, {
   "title" : "2027 협성장학생 선발",
@@ -196,7 +196,7 @@
   "deadline" : "2026.12.14 ~ 2027.01.04",
   "description" : "",
   "link" : "https://www.contestkorea.com/sub/view.php?int_gbn=1&Txt_bcode=030310001&str_no=202611230032",
-  "collectedDate" : "2026-11-24",
+  "collectedDate" : "2026-11-25",
   "isDev" : false
 }, {
   "title" : "2026 서울 야간경제 활성화 해커톤 (Dopamine Seoul 24)",
@@ -204,14 +204,22 @@
   "deadline" : "2026.11.18 ~ 2026.12.07",
   "description" : "",
   "link" : "https://www.contestkorea.com/sub/view.php?int_gbn=1&Txt_bcode=030310001&str_no=202611230028",
-  "collectedDate" : "2026-11-24",
+  "collectedDate" : "2026-11-25",
   "isDev" : true
 }, {
   "title" : "2026 대구 로컬AI그라운드 지역문제 해결형 AI활용 경진대회",
-  "host" : "대구광역시, 대구창조경제혁신센터",
+  "host" : "대구광역시, 대구창조경제혁신센터/대구정책연구원,대구창의...",
   "deadline" : "2026.11.06 ~ 2026.11.30",
   "description" : "",
   "link" : "https://www.contestkorea.com/sub/view.php?int_gbn=1&Txt_bcode=030310001&str_no=202611220001",
-  "collectedDate" : "2026-11-23",
+  "collectedDate" : "2026-11-25",
   "isDev" : true
+}, {
+  "title" : "제14회 국제 e-모빌리티 엑스포 제3회 청소년 국제 컨퍼런스(학술 대회)",
+  "host" : "국제e-모빌리티엑스포조직위원회, 미디어제주/주식회사 르...",
+  "deadline" : "2027.01.11 ~ 2027.02.08",
+  "description" : "",
+  "link" : "https://www.contestkorea.com/sub/view.php?int_gbn=1&Txt_bcode=030310001&str_no=202611250007",
+  "collectedDate" : "2026-11-25",
+  "isDev" : false
 } ]
